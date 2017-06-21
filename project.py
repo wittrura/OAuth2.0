@@ -174,7 +174,13 @@ def restaurantsJSON():
 @app.route('/restaurant/')
 def showRestaurants():
   restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
-  return render_template('restaurants.html', restaurants = restaurants)
+
+  try:
+      currentUser = getUserID(login_session['email'])
+      return render_template('restaurants.html', restaurants = restaurants)
+  except:
+      return render_template('publicrestaurants.html', restaurants = restaurants)
+
 
 #Create a new restaurant
 @app.route('/restaurant/new/', methods=['GET','POST'])
@@ -225,7 +231,14 @@ def deleteRestaurant(restaurant_id):
 def showMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
     items = session.query(MenuItem).filter_by(restaurant_id = restaurant_id).all()
-    return render_template('menu.html', items = items, restaurant = restaurant)
+    creator = getUserInfo(restaurant.user_id)
+
+    currentUser = getUserID(login_session['email'])
+
+    if currentUser == creator.id:
+        return render_template('menu.html', items = items, restaurant = restaurant, creator = creator)
+    else:
+        return render_template('publicmenu.html', items = items, restaurant = restaurant, creator = creator)
 
 
 
